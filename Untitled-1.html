@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Özel Geri Sayım</title>
+    <style>
+        body {
+            background-color: #B7B7B7; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 40px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+        h1 { 
+            color: #1c8872; /* 6FD2BE'nin okunabilir koyu tonu */
+            margin: 0; 
+            font-size: 28px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input[type="date"] {
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            outline: none;
+            font-family: inherit;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.6);
+            color: #333;
+            cursor: pointer;
+        }
+        button {
+            padding: 14px 20px;
+            background-color: #6FD2BE;
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(111, 210, 190, 0.3);
+        }
+        button:hover { 
+            background-color: #5bbca8; 
+            transform: translateY(-2px);
+        }
+        .zaman-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .zaman-kutu {
+            background: rgba(255, 255, 255, 0.4);
+            padding: 15px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .deger {
+            display: block;
+            font-size: 28px;
+            font-weight: 800;
+            color: #1c8872;
+        }
+        .etiket {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #555;
+        }
+        #mesaj {
+            font-size: 20px;
+            font-weight: bold;
+            color: #d9534f;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-panel">
+        <h1>Hedefini Belirle</h1>
+        
+        <div class="input-group">
+            <input type="date" id="tarihSecici">
+            <button onclick="sayaciBaslat()">Sayacı Başlat</button>
+        </div>
+
+        <div id="mesaj">Süre Doldu!</div>
+
+        <div class="zaman-container" id="sayacAlani" style="display: none;">
+            <div class="zaman-kutu">
+                <span class="deger" id="ay">0</span>
+                <span class="etiket">Ay</span>
+            </div>
+            <div class="zaman-kutu">
+                <span class="deger" id="gun">0</span>
+                <span class="etiket">Gün</span>
+            </div>
+            <div class="zaman-kutu">
+                <span class="deger" id="saat">0</span>
+                <span class="etiket">Saat</span>
+            </div>
+            <div class="zaman-kutu">
+                <span class="deger" id="dakika">0</span>
+                <span class="etiket">Dakika</span>
+            </div>
+            <div class="zaman-kutu">
+                <span class="deger" id="saniye">0</span>
+                <span class="etiket">Saniye</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let zamanlayici;
+
+        function sayaciBaslat() {
+            const secilenTarih = document.getElementById("tarihSecici").value;
+            
+            if (!secilenTarih) {
+                alert("Lütfen önce bir tarih seç!");
+                return;
+            }
+
+            const hedefTarih = new Date(secilenTarih + "T00:00:00").getTime();
+            document.getElementById("sayacAlani").style.display = "grid";
+            document.getElementById("mesaj").style.display = "none";
+
+            clearInterval(zamanlayici);
+
+            zamanlayici = setInterval(function() {
+                const simdi = new Date().getTime();
+                const kalanZaman = hedefTarih - simdi;
+
+                if (kalanZaman < 0) {
+                    clearInterval(zamanlayici);
+                    document.getElementById("sayacAlani").style.display = "none";
+                    document.getElementById("mesaj").style.display = "block";
+                    return;
+                }
+
+                // Toplam gün sayısını bul
+                const toplamGun = Math.floor(kalanZaman / (1000 * 60 * 60 * 24));
+                
+                // Ay ve gün kırılımı (Yaklaşık 30 gün = 1 ay varsayımı ile)
+                const ay = Math.floor(toplamGun / 30);
+                const gun = toplamGun % 30;
+                
+                const saat = Math.floor((kalanZaman % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const dakika = Math.floor((kalanZaman % (1000 * 60 * 60)) / (1000 * 60));
+                const saniye = Math.floor((kalanZaman % (1000 * 60)) / 1000);
+
+                // Değerleri HTML'e yazdır
+                document.getElementById("ay").innerText = ay;
+                document.getElementById("gun").innerText = gun;
+                document.getElementById("saat").innerText = saat;
+                document.getElementById("dakika").innerText = dakika;
+                document.getElementById("saniye").innerText = saniye;
+            }, 1000);
+        }
+    </script>
+
+</body>
+</html>
